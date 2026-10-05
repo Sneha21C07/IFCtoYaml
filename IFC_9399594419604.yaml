@@ -1,0 +1,526 @@
+openapi: 3.0.0
+info:
+  title: Customer Bill Management APIs
+  description: |
+    OpenAPI specification generated from Confluence IFC page 9399594419604
+    (OneApp-MS - TMF678 - Interface Specification).
+
+    This API supports:
+    - Retrieving current bill details
+    - Retrieving previous bill history
+    - Retrieving next bill estimate
+    - Downloading bill PDF document links
+  version: "0.4"
+servers:
+  - url: https://dsapi.vodafone.com.au
+    description: Production
+  - url: https://pt01-api.prep.deel-ms.services.vodafone.com.au
+    description: PT
+  - url: https://crr01-api.nonp.deel-ms.services.vodafone.com.au
+    description: CRR
+  - url: https://sit01-api.nonp.deel-ms.services.vodafone.com.au
+    description: SIT
+tags:
+  - name: Customer Bill
+    description: Retrieve customer bill details for current, previous, and next cycles.
+  - name: Bill Document
+    description: Download bill document links.
+paths:
+  /tmf-api/customerBillManagement/v4/customerBill/{ban}:
+    get:
+      tags:
+        - Customer Bill
+      summary: Get customer bill by bill type
+      description: |
+        Retrieves customer bill information for a billing account number (`ban`).
+        Use query parameter `bill` to request `current`, `previous`, or `next` bill data.
+      operationId: getCustomerBill
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BanPathParam'
+        - $ref: '#/components/parameters/BillQueryParam'
+        - $ref: '#/components/parameters/XCorrelationIdHeader'
+        - $ref: '#/components/parameters/XRequestTimestampHeader'
+      responses:
+        '200':
+          description: Successful bill retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerBillResponse'
+              examples:
+                currentBillPaid:
+                  summary: Current bill paid scenario
+                  value:
+                    customerBill:
+                      - id: "61426325257"
+                        billDate: "2020-05-22T14:28:07.088Z"
+                        billNo: "1000401"
+                        paymentDueDate: "2024-05-06T10:50:23.475Z"
+                        lastUpdate: "2024-05-03T12:16:22.400Z"
+                        receiptNumber: "187136457965"
+                        category: "10005"
+                        invoiceStatus: "0"
+                        amountDue:
+                          unit: AUD
+                          value: 0
+                        billingPeriod:
+                          endDateTime: "2024-12-21T00:00:00.000Z"
+                          startDateTime: "2024-12-20T00:00:00.000Z"
+                        remainingAmount:
+                          unit: AUD
+                          value: 50.0
+                        state: new
+                        paymentMethod:
+                          name: VISA
+                          cardNumber: "2291"
+                        appliedPayment:
+                          - appliedAmount:
+                              unit: AUD
+                              value: 0
+                            payment:
+                              name: "true"
+                              '@type': setupDirectDebit
+                        billDocument:
+                          - name: downloadBillAvailable
+                            content: "true"
+                        details:
+                          services:
+                            - sim
+                          extraCharges:
+                            - item: Roaming
+                              value: "5"
+                              unit: AUD
+                            - item: International Calls
+                              value: "6"
+                              unit: AUD
+                            - item: MSD
+                              value: "5"
+                              unit: AUD
+                              '@type': msdValue
+                              '@baseType': discount
+                previousBillOverdue:
+                  summary: Previous bill overdue scenario
+                  value:
+                    customerBill:
+                      - id: "61426325257"
+                        billDate: "2020-05-22T14:28:07.088Z"
+                        billNo: "100402"
+                        paymentDueDate: "2024-05-06T10:50:23.475Z"
+                        lastUpdate: "2024-05-07T12:16:22.400Z"
+                        receiptNumber: "187136457965"
+                        invoiceStatus: "0"
+                        state: overdue
+                        billingPeriod:
+                          endDateTime: "2024-05-06T10:50:23.475Z"
+                          startDateTime: "2024-05-06T10:50:23.475Z"
+                        remainingAmount:
+                          unit: AUD
+                          value: 50.0
+                        paymentMethod:
+                          name: VISA
+                          cardNumber: "2291"
+                        taxIncludedAmount:
+                          unit: AUD
+                          value: 50.0
+                nextBillEstimate:
+                  summary: Next bill estimate scenario
+                  value:
+                    customerBill:
+                      - paymentDueDate: "2024-05-06T10:50:23.475Z"
+                        billingPeriod:
+                          endDateTime: "2024-05-06T10:50:23.475Z"
+                          startDateTime: "2024-05-06T10:50:23.475Z"
+                        remainingAmount:
+                          unit: AUD
+                          value: 50.0
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+  /tmf-api/customerBillManagement/v4/downloadCustomerBill/{id}:
+    get:
+      tags:
+        - Bill Document
+      summary: Get downloadable bill document URL
+      description: Returns a downloadable bill PDF URL for a billing account and invoice number.
+      operationId: downloadCustomerBill
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DocumentIdPathParam'
+        - $ref: '#/components/parameters/BanQueryParam'
+        - $ref: '#/components/parameters/InvoiceNumberQueryParam'
+        - $ref: '#/components/parameters/XCorrelationIdHeader'
+        - $ref: '#/components/parameters/XRequestTimestampHeader'
+      responses:
+        '200':
+          description: Download URL retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillDocumentResponse'
+              example:
+                billDocument:
+                  - id: "1179032965"
+                    url: https://pv.test2.vodafone.com.au/Download/doc.pdf?id=uUZeK7vH71z1eBoX6sO5JWjN5jNMh0YgpaFPGce6KaJiqEvZiVsCip8jk52rGx8mA2Dwi2a1b%2BJZluH6c%2Br%2FrA%3D%3D
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    BanPathParam:
+      name: ban
+      in: path
+      required: true
+      description: Billing account number
+      schema:
+        type: string
+        minLength: 1
+      example: "1234567890"
+    BillQueryParam:
+      name: bill
+      in: query
+      required: true
+      description: Bill type to retrieve
+      schema:
+        type: string
+        enum:
+          - current
+          - previous
+          - next
+      example: current
+    DocumentIdPathParam:
+      name: id
+      in: path
+      required: true
+      description: Document identifier
+      schema:
+        type: string
+      example: "1179032965"
+    BanQueryParam:
+      name: ban
+      in: query
+      required: true
+      description: Billing account number
+      schema:
+        type: string
+        minLength: 1
+      example: "1234567890"
+    InvoiceNumberQueryParam:
+      name: invoiceNumber
+      in: query
+      required: true
+      description: Invoice number
+      schema:
+        type: string
+        minLength: 1
+      example: "1000401"
+    XCorrelationIdHeader:
+      name: x-correlation-id
+      in: header
+      required: false
+      description: Correlation identifier for tracing requests
+      schema:
+        type: string
+    XRequestTimestampHeader:
+      name: x-request-timestamp
+      in: header
+      required: false
+      description: Request timestamp in ISO-8601 format
+      schema:
+        type: string
+        format: date-time
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "400"
+            reason: Bad Request
+            message: Invalid request parameters.
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "401"
+            reason: Unauthorized
+            message: Missing or invalid authentication token.
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "403"
+            reason: Forbidden
+            message: Access to requested resource is denied.
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "404"
+            reason: Not Found
+            message: Requested resource was not found.
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "500"
+            reason: Internal Server Error
+            message: Unexpected server error occurred.
+    BadGateway:
+      description: Bad gateway
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "502"
+            reason: Bad Gateway
+            message: Downstream service returned an invalid response.
+    GatewayTimeout:
+      description: Gateway timeout
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "504"
+            reason: Gateway Timeout
+            message: Downstream service timeout.
+  schemas:
+    CustomerBillResponse:
+      type: object
+      properties:
+        customerBill:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerBill'
+    CustomerBill:
+      type: object
+      properties:
+        id:
+          type: string
+        billDate:
+          type: string
+          format: date-time
+        billNo:
+          type: string
+        paymentDueDate:
+          type: string
+          format: date-time
+        lastUpdate:
+          type: string
+          format: date-time
+        receiptNumber:
+          type: string
+        category:
+          type: string
+        invoiceStatus:
+          type: string
+          description: "Invoice state code: 0 paid, 1 unpaid/partial, 2 in credit"
+        state:
+          type: string
+          description: Optional state indicator, for example overdue
+        amountDue:
+          $ref: '#/components/schemas/Money'
+        taxIncludedAmount:
+          $ref: '#/components/schemas/Money'
+        billingPeriod:
+          $ref: '#/components/schemas/BillingPeriod'
+        remainingAmount:
+          $ref: '#/components/schemas/Money'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+        appliedPayment:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppliedPayment'
+        billDocument:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillDocumentFlag'
+        details:
+          $ref: '#/components/schemas/BillDetails'
+    BillingPeriod:
+      type: object
+      properties:
+        endDateTime:
+          type: string
+          format: date-time
+        startDateTime:
+          type: string
+          format: date-time
+    Money:
+      type: object
+      properties:
+        unit:
+          type: string
+          example: AUD
+        value:
+          type: number
+          format: float
+    PaymentMethod:
+      type: object
+      properties:
+        name:
+          type: string
+          example: VISA
+        cardNumber:
+          type: string
+          description: Optional. Present only for card and PayPal payment methods.
+    AppliedPayment:
+      type: object
+      properties:
+        appliedAmount:
+          $ref: '#/components/schemas/Money'
+        payment:
+          $ref: '#/components/schemas/PaymentMetadata'
+    PaymentMetadata:
+      type: object
+      properties:
+        name:
+          type: string
+        '@type':
+          type: string
+          example: setupDirectDebit
+    BillDocumentFlag:
+      type: object
+      properties:
+        name:
+          type: string
+          example: downloadBillAvailable
+        content:
+          type: string
+          example: "true"
+    BillDetails:
+      type: object
+      properties:
+        services:
+          type: array
+          items:
+            type: string
+        extraCharges:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtraCharge'
+    ExtraCharge:
+      type: object
+      properties:
+        item:
+          type: string
+        value:
+          type: string
+        unit:
+          type: string
+        '@type':
+          type: string
+        '@baseType':
+          type: string
+    BillDocumentResponse:
+      type: object
+      properties:
+        billDocument:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillDocument'
+    BillDocument:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          format: uri
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - reason
+        - message
+      properties:
+        code:
+          type: string
+        reason:
+          type: string
+        message:
+          type: string
+x-apigee-policies:
+  caching:
+    - path: /tmf-api/customerBillManagement/v4/customerBill/{ban}
+      condition: bill=current
+      ttl: 60
+      cacheLayer: Redis
+    - path: /tmf-api/customerBillManagement/v4/customerBill/{ban}
+      condition: bill=previous
+      ttl: 60
+      cacheLayer: Redis
+    - path: /tmf-api/customerBillManagement/v4/customerBill/{ban}
+      condition: bill=next
+      ttl: 60
+      cacheLayer: Redis
+      cacheKeyTemplate: Redis{{ban}}_GET_NEXT_BILL_brand
+    - path: /tmf-api/customerBillManagement/v4/downloadCustomerBill/{id}
+      ttl: 60
+      cacheLayer: Redis
+  backendMappings:
+    - path: /tmf-api/customerBillManagement/v4/customerBill/{ban}
+      condition: bill=current
+      backend: ODS
+      backendUrl: https://sit02-rpm.nonp.deel-ms.services.vodafone.com.au/getData/ods
+      backendIfc: GetBillDueSummary, GETBANSERVICEDETAILS
+    - path: /tmf-api/customerBillManagement/v4/customerBill/{ban}
+      condition: bill=previous
+      backend: ODS
+      backendUrl: https://sit02-rpm.nonp.deel-ms.services.vodafone.com.au/getData/ods
+      backendIfc: getInvoiceHistory
+    - path: /tmf-api/customerBillManagement/v4/downloadCustomerBill/{id}
+      backend: SS2 Fusion
+      backendUrl: https://ss2-osb-pmt-sit9-cluster.dc.vodafone.com.au:443/cm/cpm/svc/DocumentManagement_1.0
+      backendIfc: Microservice Interface Contract Download Bill (PDF)
+    - path: /tmf-api/customerBillManagement/v4/customerBill/{ban}
+      condition: bill=next
+      backend: ODSRed
+      backendUrl: https://sit02-rpm.nonp.deel-ms.services.vodafone.com.au/getData/ods
+      backendIfc: GETNEXTBANSERVICEDETAILS

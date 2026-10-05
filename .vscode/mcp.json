@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "confluence": {
+      "command": "python",
+      "args": ["confluence_mcp.py"],
+      "description": "Confluence MCP Server for fetching and searching Confluence pages",
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
